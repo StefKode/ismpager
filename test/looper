@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function send {
+    echo "$1"
+    curl -d rfsend="$1" http://192.168.179.60/webrfgw-cmd
+}
+
+
+c=0
+while [ 1 ];
+do
+    s=$(printf "%04x" $c)
+    send $s
+    let c++
+    sleep 5
+done
