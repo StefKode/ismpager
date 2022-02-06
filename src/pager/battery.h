@@ -14,12 +14,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
-*/
+ *
+ */
 
 #ifndef BATMANAGE_H
 #define BATMANAGE_H
 
+/**
+ * @brief Get the battery charge level
+ *
+ * @return float
+ */
 float get_bat_level();
 
 #endif

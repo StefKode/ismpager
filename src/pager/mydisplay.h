@@ -14,9 +14,9 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
-*/
- 
+ *
+ */
+
 #ifndef MYDISPLAY_H
 #define MYDISPLAY_H
 #include <Adafruit_GFX.h>
@@ -27,17 +27,52 @@
 #define APPVERSION "-"
 #endif
 
-#define display_string(s) (char*)s
+#define display_string(s) (char *)s
 
-class MyDisplay {
+/**
+ * @brief Class to manage OLED display
+ *
+ */
+class MyDisplay
+{
   Adafruit_SSD1306 *display;
-  public:
-    MyDisplay(void);
-    void set_text_small(char *s);
-    void set_text_small(const char *s);
-    void set_text_big(char *s);
-    void set_text_big(const char *s);
-    void update_bat_gauge(float level);  
+
+public:
+  MyDisplay(void);
+  /**
+   * @brief Clears diplay and writes text with small font
+   *
+   * @param s Text
+   */
+  void set_text_small(char *s);
+
+  /**
+   * @brief Clears diplay and writes text with small font
+   *
+   * @param s Text
+   */
+  void set_text_small(const char *s);
+
+  /**
+   * @brief Clears diplay and writes text with large font
+   *
+   * @param s Text
+   */
+  void set_text_big(char *s);
+
+  /**
+   * @brief Clears diplay and writes text with large font
+   *
+   * @param s Text
+   */
+  void set_text_big(const char *s);
+
+  /**
+   * @brief paints the battery symbol with charge level
+   *
+   * @param level charge level 0..1
+   */
+  void update_bat_gauge(float level);
 };
 
 #endif

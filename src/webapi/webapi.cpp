@@ -14,8 +14,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
-*/
+ *
+ */
 
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -35,7 +35,7 @@ const int rfapi_txpin = 12;
 const int rfapi_rxpin = 2;
 
 // ######################## Wifi Preps ################################
-const char* ssid = PROJECT_SSID;
+const char *ssid = PROJECT_SSID;
 char password[20];
 String readLineData;
 String response;
@@ -59,32 +59,39 @@ String cmd_rfsend(String value)
 }
 
 // ######################## Web Handlers ##############################
-void handleForm() 
+void handleForm()
 {
   String reply = "error, timeout";
-  if (server.method() != HTTP_POST) {
+  if (server.method() != HTTP_POST)
+  {
     server.send(405, "text/plain", "Method Not Allowed");
-  } else {
-    for (uint8_t i = 0; i < server.args(); i++) {      
-      if (server.argName(i) == "rfsend") {
+  }
+  else
+  {
+    for (uint8_t i = 0; i < server.args(); i++)
+    {
+      if (server.argName(i) == "rfsend")
+      {
         Serial.println("rfsend->");
-        while (rfapi.available() <= 0) {}
+        while (rfapi.available() <= 0)
+        {
+        }
         reply = cmd_rfsend(server.arg(i));
       }
     }
     // test response delay
-    //delay(2000);
+    // delay(2000);
     server.send(200, "text/plain", reply);
   }
 }
 
-void handleNotFound() 
+void handleNotFound()
 {
   server.send(404, "text/plain", "not found");
 }
 
 // ########################## MAIN SETUP ####################################
-void setup(void) 
+void setup(void)
 {
   pinMode(led, OUTPUT);
   pinMode(rfapi_rxpin, INPUT);
@@ -92,21 +99,23 @@ void setup(void)
 
   // Configuration Data
   EEPROM.begin(512);
-  
+
   // Serial Console
   Serial.begin(115200);
   Serial.println("WEBAPI");
-  
+
   // Serial interface to rfapi module
   rfapi.begin(9600, SWSERIAL_8N1, rfapi_rxpin, rfapi_txpin, false);
-  if (!rfapi) {
-    Serial.println("Invalid SoftwareSerial pin configuration, check config"); 
+  if (!rfapi)
+  {
+    Serial.println("Invalid SoftwareSerial pin configuration, check config");
     // Stop here
-    while (1) {
-      delay (1000);
+    while (1)
+    {
+      delay(1000);
     }
   }
-  Serial.println("Software Serial initialized"); 
+  Serial.println("Software Serial initialized");
 
   //######################## WIFI ########################################
 
@@ -119,23 +128,26 @@ void setup(void)
   Serial.println("Connecting to ");
   Serial.println(ssid);
 
-  //Assign static IP by fritz.box
-  //WiFi.mode(WIFI_STA);
-  //WiFi.config(ip, gateway, subnet);
+  // Assign static IP by fritz.box
+  // WiFi.mode(WIFI_STA);
+  // WiFi.config(ip, gateway, subnet);
 
   // start wifi
   WiFi.begin(ssid, password);
 
   int maxWait = 20;
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(1000);
     Serial.println(".");
 
     maxWait--;
-    if (maxWait <= 0) {
+    if (maxWait <= 0)
+    {
       getSavePassword();
       Serial.print("please restart");
-      while (1);
+      while (1)
+        ;
     }
   }
   Serial.print("IP address: ");
@@ -143,7 +155,7 @@ void setup(void)
   Serial.println("WiFi connected");
 
   //######################## WebServer ########################################
-    
+
   server.on("/webrfgw-cmd", handleForm);
   server.onNotFound(handleNotFound);
 
@@ -151,20 +163,25 @@ void setup(void)
   Serial.println("HTTP server started");
 }
 
-void loop(void) {
+void loop(void)
+{
   server.handleClient();
 }
 
 //######################## EPROM/Password Utils ###############################
-void readLine() {
-  while (1) {
-    while (Serial.available() <= 0);
+void readLine()
+{
+  while (1)
+  {
+    while (Serial.available() <= 0)
+      ;
     char recieved = Serial.read();
     Serial.println(".");
-    readLineData += recieved; 
+    readLineData += recieved;
 
     // Process message when new line character is recieved
-    if (recieved == '\n') {
+    if (recieved == '\n')
+    {
       return;
     }
   }
@@ -172,10 +189,10 @@ void readLine() {
 
 void getSavePassword()
 {
-  Serial.print("Enter Password");  
+  Serial.print("Enter Password");
   readLine();
   Serial.print("OK, save to EEPROM");
-  
+
   writeEEPROM(0, readLineData);
   Serial.print("OK, saved");
 }
@@ -184,11 +201,12 @@ void writeEEPROM(char addr, String data)
 {
   int len = data.length();
   int i;
-  for(i = 0; i < len; i++) {
+  for (i = 0; i < len; i++)
+  {
     EEPROM.write(addr + i, data[i]);
   }
-  
-  EEPROM.write(addr + len,'\0');
+
+  EEPROM.write(addr + len, '\0');
   EEPROM.commit();
 }
 
@@ -196,21 +214,25 @@ void readEEPROM(char addr, char buf[], int len)
 {
   int i = 0;
   buf[0] = 0;
-  
-  for (i = 0; i < len; i++) {
+
+  for (i = 0; i < len; i++)
+  {
     buf[i] = EEPROM.read(addr + i);
-    if (buf[i] == 0) {
+    if (buf[i] == 0)
+    {
       break;
     }
-    if (!isPrintable(buf[i])) {
+    if (!isPrintable(buf[i]))
+    {
       buf[i] = 0;
       break;
     }
   }
-  
-  if (i >= len) {
+
+  if (i >= len)
+  {
     buf[len - 1] = 0;
   }
-  
+
   return;
 }

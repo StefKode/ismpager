@@ -14,35 +14,47 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
-*/
+ *
+ */
 
 #include "Arduino.h"
 #include "battery.h"
 
+/**
+ * @brief Get the battery charge level
+ *
+ * The battery discharge curve is non-linear. The current implementation
+ * just returns the factor between max charg (battop) and min charge
+ * (batbase). TODO: map the bat level to actual charge level.
+ *
+ * @return float
+ */
 float get_bat_level()
 {
   long vcc;
   unsigned int width;
   float clip;
   const float batbase = 3300.0;
-  const float battop  = 4300.0;
+  const float battop = 4300.0;
 
   // Read 1.1V reference against AVcc
   ADMUX = _BV(REFS0) | _BV(MUX3) | _BV(MUX2) | _BV(MUX1);
-  delay(2); // Wait for Vref to settle
+  delay(2);            // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Convert
-  while (bit_is_set(ADCSRA,ADSC));
+  while (bit_is_set(ADCSRA, ADSC))
+    ;
   vcc = ADCL;
-  vcc |= ADCH<<8;
+  vcc |= ADCH << 8;
   vcc = 1126400L / vcc; // Back-calculate AVcc in mV
-    
-  if ((float)vcc > battop) {
+
+  if ((float)vcc > battop)
+  {
     return 1.0;
-  } 
+  }
 
   clip = (float)vcc - batbase;
-  if (clip < 0.0) {
+  if (clip < 0.0)
+  {
     return 0.0;
   }
   return clip / (battop - batbase);

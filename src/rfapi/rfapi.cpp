@@ -14,18 +14,18 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
- * 
-*/
+ *
+ */
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <RH_ASK.h> /* needed by RH_ASK */
-#include <SPI.h> 
+#include <SPI.h>
 #include <AESLib.h>
 
 #include "projectconfig.h"
 #include "pagerio.h"
- 
+
 RH_ASK rf_driver(500);
 
 uint8_t key[] = AESKEY;
@@ -40,32 +40,33 @@ SoftwareSerial rfapi(rfapi_rxpin, rfapi_txpin);
 void rfrecv(String value)
 {
   Serial.println("> send to rf: " + value);
-  
+
   Serial.println("< done");
 }
 
-
 // ########################## MAIN SETUP ####################################
-void setup() {
+void setup()
+{
   // Serial Console
   Serial.begin(115200);
   Serial.println("RFAPI");
-  
+
   // Initialize ASK Object
   rf_driver.init();
-  
+
   // Serial interface to rfapi module
   rfapi.begin(9600);
-  Serial.println("Software Serial initialized"); 
+  Serial.println("Software Serial initialized");
 }
 
 String data;
 // ########################## Work Loop ####################################
-void loop() 
+void loop()
 {
   int len;
-  
-  if (rfapi.available() > 0) {
+
+  if (rfapi.available() > 0)
+  {
     data = rfapi.readString();
     data.trim();
     data.trim();
@@ -73,7 +74,7 @@ void loop()
     len = strlen(out);
 
     union datablock_t sendblock;
-    memset((void*)&sendblock, 0, sizeof(sendblock));
+    memset((void *)&sendblock, 0, sizeof(sendblock));
 
     /* time */
     Serial.println("Rfapi Rx: " + String(out));
@@ -81,20 +82,22 @@ void loop()
     sendblock.elem.h1 = out[1];
     sendblock.elem.m0 = out[2];
     sendblock.elem.m1 = out[3];
-    if (len >= 5) {
+    if (len >= 5)
+    {
       sendblock.elem.alarm = out[4] - '0';
     }
-    if (len >= 7) {
+    if (len >= 7)
+    {
       sendblock.elem.alarm_floor = out[5];
       sendblock.elem.alarm_room = out[6];
     }
     sendblock.elem.cycle = cycle;
     cycle += 1;
-    
-    rf_driver.printBuffer("SendRaw:", (uint8_t*)&sendblock, sizeof(sendblock));
+
+    rf_driver.printBuffer("SendRaw:", (uint8_t *)&sendblock, sizeof(sendblock));
     aes128_enc_single(key, &sendblock);
-    rf_driver.printBuffer("SendEnc:", (uint8_t*)&sendblock, sizeof(sendblock));
-    rf_driver.send((uint8_t*)&sendblock, sizeof(sendblock));
+    rf_driver.printBuffer("SendEnc:", (uint8_t *)&sendblock, sizeof(sendblock));
+    rf_driver.send((uint8_t *)&sendblock, sizeof(sendblock));
     rf_driver.waitPacketSent();
     delay(1000);
     rfapi.println("ok\n");
